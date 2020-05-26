@@ -3,6 +3,8 @@
 """
 Created on June 14, 2016
 
+The epistic sites are randomly selected K sites from the total N sites.
+
 Written in Python 3
 
 
