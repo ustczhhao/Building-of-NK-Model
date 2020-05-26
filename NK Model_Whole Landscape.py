@@ -30,14 +30,14 @@ class NK_model(object):
     def get_allelic_fitness(self):  
         '''Generate the individual fitness of each alleles'''
         
-        self.locus_list = []  
         self.fitness_list = []
         
-        for i in range(self.n): # each site will have two possible alleles； '0' and '1'
-            self.locus_list.append(['0', '1'])
-        
-        for j in self.locus_list: # generate the possible fitness for allele '0' and '1' in each site
-            self.fitness_list.append(list(random.random(2)))
+        epistic_geno = [''.join(i) for i in itertools.product('01', repeat = self.k+1)]  # get all possible combinations of 
+                                # the site i with its epistic sites (because including site i itself, repeat = self.k+1)
+        for j in range(self.n): # for each site in the genotype, generate the corresponding fitness
+            epistic_fit = random.random(len(epistic_geno)) 
+            epistic_map = dict(zip(epistic_geno, epistic_fit)) # generate the fitness of each site-epistic site pairs
+            self.fitness_list.append(epistic_map)  # generate the fitness list
             
     
     def get_epistic_site(self):
@@ -52,6 +52,7 @@ class NK_model(object):
                 indices.add(random.randint(0, len(all_site))) # randomly pick the indexes of k elements from all_site
 
             indices = list(indices)  # convert the set into list
+            indices.sort()
             
             one_site = []
             for j in indices:  # get the epistic sites of site i
@@ -59,32 +60,26 @@ class NK_model(object):
             
             self.epistic_site.append(one_site)
             
-            
+    
+    
     def cal_fitness(self):
         '''Calculate the fitness of every genotype'''
         
-        self.w_fitness = []
-        for i in self.genotype_list:  # for every genotype in genotype_list
-            
-            one_fitness = []  # will be used to store the calcualted fitness of every site in genotype i
-            for j in range(self.n):  # for every site in genotype i
-                
-                s = 1
-                for q in self.epistic_site[j]: # calculate the epistic effects from epistic sites of site j
-                    if i[q] == '0':
-                        s =  s*self.fitness_list[q][0]
-                    else:
-                        s =  s*self.fitness_list[q][1]
-                
-                if i[j] == '0':  # calculate the fitness of genotype i
-                    fitness = s*self.fitness_list[j][0]
-                else:
-                    fitness = s*self.fitness_list[j][1]
-                    
-                one_fitness.append(fitness)  
-                
-            self.w_fitness.append(sum(one_fitness)/self.n) # sum(one_fitness)/self.n is the calculated fitness of genotype i
+        self.w_fitness = []  # will be used to store the fitness of each genotype in the landscape
         
+        for i in self.genotype_list:
+            one_fitness = []  # will be used to store the fitness of each site in the genotype i
+            for j in range(self.n):
+                epis_pair = i[j]  # the calculated site itself
+                for s in self.epistic_site[j]: # the epistic site
+                    epis_pair +=i[s]  # get all epistic site into epis_pair (will be used to get the fitness of this pair)
+                    
+                one_fitness.append(self.fitness_list[j][epis_pair])  # get the fitness of the epis_pair (fitness of site j in
+                                                                    # genotype i)
+            
+            i_fitness = sum(one_fitness)/self.n  # calcualte the fitness of genotype i and store into self.w_fitness
+            self.w_fitness.append(i_fitness)
+            
     
     @staticmethod
     def creat_neighbor(genotype, mutant_num):
@@ -179,7 +174,17 @@ class NK_model(object):
             self.start_type_fitness = self.next_type_fitness
             fit = self.random_walk() # run the random_walk method with the updated self.start_type
         
+    
+    def multiple_random_walk(self, times):
         
+        self.multiple_walk_list = []
+        
+        for i in range(times):
+            self.repeat_random_walk()
+            self.multiple_walk_list.append(self.walk_list)
+            self.start_type = self.genotype_list[random.randint(0, len(self.genotype_list))]
+    
+    
     def search_optimal(self):
         '''Search the genotype of local optimal'''
         
@@ -189,3 +194,4 @@ class NK_model(object):
             if self.landscape[i] > max(neighbor_fitness):  # if fitness of i is larger than all its neighbors, i is local optima
                 self.optimal_list.append(i)   # append i into self.optimal_list
                 
+        
