@@ -3,7 +3,7 @@
 """
 Created on June 14, 2016
 
-The epistic sites are randomly selected K sites from the total N sites.
+The epistic sites are randomly selected K sites from the total N sites. The model is additive.
 
 Written in Python 3
 
