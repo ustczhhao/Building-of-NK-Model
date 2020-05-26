@@ -4,9 +4,9 @@
 
 Created on June 20, 2016
 
-Written in Python 3
+The epistic sites are 0.5 K flanking neighbors on each side. The model is additive.
 
-The epistic sites are 0.5 K flanking neighbors on each side.
+Written in Python 3
 
 """
 
